@@ -97,33 +97,30 @@ FROM (
 -- 2. Hvenær voru öll nöfnin vinsælust? (Bæði eiginnöfn og millinöfn)
 SELECT '2. Hvenær voru öll nöfnin vinsælust?' AS section
 UNION ALL
-SELECT 'Einar: ' || (SELECT year FROM all_names WHERE name = 'Einar' AND type = 'First' ORDER BY count DESC, year ASC LIMIT 1) AS result
+SELECT 'Einar: ' || (SELECT year FROM all_names WHERE name = 'Einar' ORDER BY count DESC, year ASC LIMIT 1) AS result
 UNION ALL
-SELECT 'Guðný: ' || (SELECT year FROM all_names WHERE name = 'Guðný' AND type = 'First' ORDER BY count DESC, year ASC LIMIT 1) AS result
+SELECT 'Guðný: ' || (SELECT year FROM all_names WHERE name = 'Guðný' ORDER BY count DESC, year ASC LIMIT 1) AS result
 UNION ALL
-SELECT 'Halldór: ' || (SELECT year FROM all_names WHERE name = 'Halldór' AND type = 'First' ORDER BY count DESC, year ASC LIMIT 1) AS result
+SELECT 'Halldór: ' || (SELECT year FROM all_names WHERE name = 'Halldór' ORDER BY count DESC, year ASC LIMIT 1) AS result
 UNION ALL
-SELECT 'Valur: ' || (SELECT year FROM all_names WHERE name = 'Valur' AND type = 'First' ORDER BY count DESC, year ASC LIMIT 1) AS result;
+SELECT 'Valur: ' || (SELECT year FROM all_names WHERE name = 'Valur' ORDER BY count DESC, year ASC LIMIT 1) AS result;
 
 
-
-
--- 3. Hvenær komu þau fyrst fram?
+-- 3. Hvenær komu þau fyrst fram? (Bæði eiginnöfn og millinöfn)
 SELECT '3. Hvenær komu þau fyrst fram?' AS section
 UNION ALL
 SELECT 'Einar: ' || MIN(year) AS result
 FROM all_names
-WHERE name = 'Einar' AND type = 'First'
+WHERE name = 'Einar'
 UNION ALL
 SELECT 'Guðný: ' || MIN(year) AS result
 FROM all_names
-WHERE name = 'Guðný' AND type = 'First'
+WHERE name = 'Guðný'
 UNION ALL
 SELECT 'Halldór: ' || MIN(year) AS result
 FROM all_names
-WHERE name = 'Halldór' AND type = 'First'
+WHERE name = 'Halldór'
 UNION ALL
 SELECT 'Valur: ' || MIN(year) AS result
 FROM all_names
-WHERE name = 'Valur' AND type = 'First';
-
+WHERE name = 'Valur';
