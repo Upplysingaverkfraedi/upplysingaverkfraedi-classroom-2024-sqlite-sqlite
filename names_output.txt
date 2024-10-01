@@ -1,5 +1,5 @@
 "Spurning 1: Hvaða hópmeðlimur á algengasta eiginnafnið??"
-"Ásdís",24
+"Ásdís",1021
 "Spurning 2: Hvenær voru öll nöfnin vinsælust?"
 "Gígja",1991
 "Ásdís",1959
