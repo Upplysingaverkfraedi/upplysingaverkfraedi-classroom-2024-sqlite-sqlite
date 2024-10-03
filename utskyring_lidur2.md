@@ -37,6 +37,9 @@ Tekur summu allra blaðsíðna (pages) frá töflunni *books*
 #### Hvað er meðallengd hvers þáttar af Ískisum?
 Þessi fyrirspurn skilar meðallengd(AVG) allra raða í dálkinum *length* úr töflunni *storytel_iskisur* og skilar þá meðallengd hvers þáttar af Ískisum. 
 
+## Til að keyra hina skrána, create_isfolkid.sql 
+Það eina sem þarf að skrifa í terminal, eftir að hafa opnað gagnagrunninn, er .schema og þá birtust töflurnar sem unnið var með í liði 2
+
 
 
 
