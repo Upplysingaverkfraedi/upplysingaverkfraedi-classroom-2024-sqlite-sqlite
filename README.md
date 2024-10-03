@@ -21,4 +21,3 @@ og
 sqlite3 data/create_isfolkid.db
 .read create_isfolkid.sql
 ```
-
