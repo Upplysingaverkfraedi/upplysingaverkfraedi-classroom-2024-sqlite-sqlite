@@ -8,11 +8,29 @@ Verkefnið felur í sér að sameina tíðnigögn úr tveimur CSV skrám, `first
 Til að keyra verkefnið þarf eftirfarandi forrit:
 
 - **SQLite**:
-  - SQL er á flesum MAC tölvum er þarf því ekki að setja það upp.
+  - SQL er á flestum MAC tölvum og þarf því ekki að setja það upp.
   - Til að athuga hvort SQL er á tölvunni skrifið inn eftirfarandi í Terminal:
     ```sqlite3 --version``` 
   - Ef það þarf að setja upp SQLite, gerið það áður en hafist er handa við verkefnið. 
   - Einnig þarf að hlaða niður SQLite viðbótinni (finnið hana í 'extensions') í VS Code til að keyra SQL fyrirspurnir.
+
+## Búa til gagnasafnið `names_freq.db`: 
+Við þurfum að byrja á því að sameina gögnin okkar í eitt gagnasafn. 
+1. Opna Terminal 
+2. Setja path fyrir hvert þú vilt fá skránna
+    1. Hjá mér er það: `cd/Documents/GitHub/sqlite-lannister`
+3. Búa til gagnasafnið og töfluna: `sqlite3 names_freq.db < names.sql`
+4. Athuga hvort það sé komið: `sqlite3 names_freq.db`
+5. Ef þú vilt sjá töfluna: `.tables`
+
+
+## Keyrsla á kóðanum: 
+1. Opna Terminal 
+2. Setja eftirfarandi í skipanalínu (ath. 1. lína breytist eftir tölvum)
+    1. `cd /Users/elisabet/Documents/GitHub/sqlite-lannister`
+    2. `sqlite3 names_freq.db`
+    3. `.read names.sql`
+
 
 
 ## Möppustrúktúr: 
@@ -23,13 +41,3 @@ Til að keyra verkefnið þarf eftirfarandi forrit:
 ├── names.sql
 └── README.md
 ```
-
-## Keyrsla á kóðanum: 
-1. Opna Terminal 
-2. Setja eftirfarandi í skipanalínu (ath. 1. lína breytist eftir tölvum)
-    1. cd /Users/elisabet/Documents/GitHub/sqlite-lannister
-    2. sqlite3 names_freq.db
-    3. .read names.sql
-
-
-
