@@ -1,0 +1,14 @@
+"Spurning 1: Hvaða hópmeðlimur á algengasta eiginnafnið??"
+"Ásdís",1021
+"Spurning 2: Hvenær voru öll nöfnin vinsælust?"
+"Gígja",1991
+"Ásdís",1959
+"Þráinn",1952
+"Marín",1995
+"Ágúst",1974
+"Spurning 3: Hvenær komu þau fyrst fram?"
+"Ágúst",1900
+"Ásdís",1908
+"Þráinn",1912
+"Gígja",1929
+"Marín",1934
