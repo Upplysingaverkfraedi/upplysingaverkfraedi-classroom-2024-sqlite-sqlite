@@ -19,26 +19,6 @@ CREATE TABLE IF NOT EXISTS timataka (
     FOREIGN KEY (hlaup_id) REFERENCES hlaup(id)
 );
 
--- Setja inn hlaup (dæmi fyrir Ljósanæturhlaup Lífsstíls)
-INSERT INTO hlaup (upphaf, endir, nafn, fjoldi)
-VALUES ('2022-08-31 18:00:00', '2022-08-31 20:00:00', 'Ljósanæturhlaup Lífsstíls', 200);
-
--- Setja inn keppendur fyrir Ljósanæturhlaup Lífsstíls
-INSERT INTO timataka (hlaup_id, nafn, timi, kyn, aldur)
-VALUES (1, 'Jon Jonsson', '00:35:21', 'Karl', 25);
-
-INSERT INTO timataka (hlaup_id, nafn, timi, kyn, aldur)
-VALUES (1, 'Sara Sigurðardóttir', '00:40:15', 'Kona', 30);
-
--- Bæta við fleiri hlaupagögnum ef þarf
--- Dæmi: Ofursprettþraut 3N
-INSERT INTO hlaup (upphaf, endir, nafn, fjoldi)
-VALUES ('2022-08-27 12:00:00', '2022-08-27 14:00:00', 'Ofursprettþraut 3N', 100);
-
--- Setja inn keppendur fyrir Ofursprettþraut 3N
-INSERT INTO timataka (hlaup_id, nafn, timi, kyn, aldur)
-VALUES (2, 'Arnar Arnalds', '00:29:05', 'Karl', 22);
-
 -- Sannreyna fjölda keppenda í hverju hlaupi
 SELECT h.nafn, h.fjoldi AS skradir_keppendur, COUNT(t.id) AS raunverulegir_keppendur
 FROM hlaup h

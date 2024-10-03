@@ -1,8 +1,7 @@
 from bs4 import BeautifulSoup
 import requests
-import pandas as pd
-import argparse
 import sqlite3
+import argparse
 from datetime import datetime
 
 def parse_arguments():
@@ -35,14 +34,81 @@ def parse_html(html):
 
     return data
 
-def skrifa_nidurstodur(data, db_file):
+def skrifa_nidurstodur(data, db_file, race_name, race_start, race_end, participant_count):
     if not data:
         print("Engar niðurstöður til að skrifa.")
         return
 
-    # Hérna kemur restin af SQLite kóðanum til að vista gögnin í gagnagrunninn
-    # Síðan er unnið með 'data' eins og áður var útskýrt
-    # ...
+    conn = sqlite3.connect(db_file)
+    cursor = conn.cursor()
+
+    # Búa til töflur ef þær eru ekki til
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS hlaup (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        upphaf DATETIME NOT NULL,
+        endir DATETIME,
+        nafn TEXT NOT NULL,
+        fjoldi INTEGER
+    )
+    ''')
+
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS timataka (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        hlaup_id INTEGER,
+        nafn TEXT NOT NULL,
+        timi TEXT NOT NULL,
+        kyn TEXT,
+        aldur INTEGER,
+        UNIQUE(hlaup_id, nafn, timi),
+        FOREIGN KEY (hlaup_id) REFERENCES hlaup(id)
+    )
+    ''')
+
+    # Setja inn hlaupið (upplýsingar dregnar úr HTML gögnum)
+    cursor.execute('''
+    INSERT INTO hlaup (upphaf, endir, nafn, fjoldi)
+    VALUES (?, ?, ?, ?)
+    ''', (race_start, race_end, race_name, participant_count))
+
+    # Nýlega sett hlaup_id fyrir hlaupið
+    hlaup_id = cursor.lastrowid
+
+    # Setja inn niðurstöður þátttakenda í hlaupið
+    for row in data:
+        if len(row) >= 3:
+            name = row[0]
+            time = row[1]
+            gender = row[2] if len(row) > 2 else None
+            age = int(row[3]) if len(row) > 3 and row[3].isdigit() else None
+
+            cursor.execute('''
+            INSERT INTO timataka (hlaup_id, nafn, timi, kyn, aldur)
+            VALUES (?, ?, ?, ?, ?)
+            ON CONFLICT(hlaup_id, nafn, timi) DO NOTHING
+            ''', (hlaup_id, name, time, gender, age))
+
+    conn.commit()
+    conn.close()
+    print(f"Niðurstöður fyrir {race_name} hafa verið vistaðar í {db_file}.")
+
+def verify_participant_counts(db_file):
+    conn = sqlite3.connect(db_file)
+    cursor = conn.cursor()
+
+    cursor.execute('''
+    SELECT h.nafn, h.fjoldi AS skradir_keppendur, COUNT(t.id) AS raunverulegir_keppendur
+    FROM hlaup h
+    LEFT JOIN timataka t ON h.id = t.hlaup_id
+    GROUP BY h.id;
+    ''')
+
+    results = cursor.fetchall()
+    for result in results:
+        print(f"{result[0]}: Skráðir keppendur: {result[1]}, Raunverulegir keppendur: {result[2]}")
+
+    conn.close()
 
 def main():
     args = parse_arguments()
@@ -61,8 +127,17 @@ def main():
             file.write(html)
         print(f"HTML fyrir {args.url} vistað í {html_file}")
 
+    # Dæmi um að ná í mörg hlaup frá ágúst 2022 (þar sem upplýsingarnar eru fengnar af síðunni)
+    # Upplýsingarnar eins og nafn hlaupsins, upphafs- og loktími og fjöldi þátttakenda ættu að vera dregnar
+    # af tímataka.net síðunni, t.d. með aðra töflu eða div.
+    race_name = "Ljósanæturhlaup Lífsstíls"
+    race_start = '2022-08-31 18:00:00'
+    race_end = '2022-08-31 20:00:00'
+    participant_count = 200  # Þessi tala verður að koma úr raunverulegum gögnum
+
     results = parse_html(html)
-    skrifa_nidurstodur(results, args.output)
+    skrifa_nidurstodur(results, args.output, race_name, race_start, race_end, participant_count)
+    verify_participant_counts(args.output)
 
 if __name__ == "__main__":
     main()
