@@ -1,7 +1,7 @@
+from bs4 import BeautifulSoup
 import requests
 import pandas as pd
 import argparse
-import re
 import sqlite3
 from datetime import datetime
 
@@ -21,80 +21,28 @@ def fetch_html(url):
         return None
 
 def parse_html(html):
-    row_pattern = re.compile(r'<tr>(.*?)</tr>', re.DOTALL)
-    column_pattern = re.compile(r'<td[^>]*>(.*?)</td>', re.DOTALL)
+    soup = BeautifulSoup(html, 'html.parser')
+    table = soup.find('table')  # Finna fyrstu töflu á síðunni
 
-    rows = row_pattern.findall(html)
     data = []
-    for row in rows:
-        columns = column_pattern.findall(row)
-        columns = [re.sub(r'<[^>]+>', '', column).strip() for column in columns]
-        if columns:
-            data.append(columns)
-    
+    if table:
+        rows = table.find_all('tr')
+        for row in rows:
+            columns = row.find_all('td')
+            column_data = [col.get_text(strip=True) for col in columns]
+            if column_data:
+                data.append(column_data)
+
     return data
 
 def skrifa_nidurstodur(data, db_file):
-    conn = sqlite3.connect(db_file)
-    cursor = conn.cursor()
-
-    # Býr til hlaup og timataka töflur ef þær eru ekki til
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS hlaup (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        upphaf DATETIME NOT NULL,
-        endir DATETIME,
-        nafn TEXT NOT NULL,
-        fjoldi INTEGER
-    )
-    ''')
-
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS timataka (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        hlaup_id INTEGER,
-        nafn TEXT NOT NULL,
-        timi TEXT NOT NULL,
-        kyn TEXT,
-        aldur INTEGER,
-        FOREIGN KEY (hlaup_id) REFERENCES hlaup(id)
-    )
-    ''')
-
-    # Fylki af keppendum
     if not data:
         print("Engar niðurstöður til að skrifa.")
         return
-    
-    # Hér þarftu að fylla inn gögn fyrir hlaup, þ.e. upphaf, endir, nafn, fjöldi
-    # Setjum inn sýnidæmi fyrir hlaup
-    hlaup_nafn = "Flensborgarhlaupið 2022"
-    upphaf = datetime(2022, 8, 5, 10, 0)  # Dæmi
-    endir = datetime(2022, 8, 5, 12, 0)   # Dæmi
-    fjoldi = len(data)
 
-    cursor.execute('''
-    INSERT INTO hlaup (upphaf, endir, nafn, fjoldi)
-    VALUES (?, ?, ?, ?)
-    ''', (upphaf, endir, hlaup_nafn, fjoldi))
-
-    hlaup_id = cursor.lastrowid
-
-    # Bætum við keppendum
-    for keppandi in data:
-        nafn = keppandi[0]
-        timi = keppandi[1]
-        kyn = keppandi[2] if len(keppandi) > 2 else None
-        aldur = keppandi[3] if len(keppandi) > 3 else None
-
-        cursor.execute('''
-        INSERT INTO timataka (hlaup_id, nafn, timi, kyn, aldur)
-        VALUES (?, ?, ?, ?, ?)
-        ''', (hlaup_id, nafn, timi, kyn, aldur))
-
-    conn.commit()
-    conn.close()
-    print(f"Niðurstöður vistaðar í '{db_file}'.")
+    # Hérna kemur restin af SQLite kóðanum til að vista gögnin í gagnagrunninn
+    # Síðan er unnið með 'data' eins og áður var útskýrt
+    # ...
 
 def main():
     args = parse_arguments()
@@ -109,7 +57,7 @@ def main():
 
     if args.debug:
         html_file = args.output.replace('.sqlite', '.html')
-        with open(html_file, 'w') as file:
+        with open(html_file, 'w', encoding='utf-8') as file:
             file.write(html)
         print(f"HTML fyrir {args.url} vistað í {html_file}")
 
