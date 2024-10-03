@@ -8,7 +8,7 @@ Verkefnið felur í sér að sameina tíðnigögn úr tveimur CSV skrám, `first
 Til að keyra verkefnið þarf eftirfarandi forrit:
 
 - **SQLite**:
-  - SQL er á flestum MAC tölvum og þarf því ekki að setja það upp.
+  - SQL er á flestum macOS tölvum og þarf því ekki að setja það upp.
   - Til að athuga hvort SQL er á tölvunni skrifið inn eftirfarandi í Terminal:
     ```sqlite3 --version``` 
   - Ef það þarf að setja upp SQLite, gerið það áður en hafist er handa við verkefnið. 
@@ -35,9 +35,14 @@ Við þurfum að byrja á því að sameina gögnin okkar í eitt gagnasafn.
 
 ## Möppustrúktúr: 
 ```bash
-├── names_freq.db
-│   ├── first_names_freq.csv
-│   ├── middle_names_freq.csv
-├── names.sql
+/sqlite-lannister
+├── data/
+     input/ 
+         ├── first_names_freq.csv
+         └── middle_names_freq.csv
+      output/
+         ├── names_freq.db
+├── code/
+     ├── names.sql
 └── README.md
 ```
