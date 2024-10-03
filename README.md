@@ -1,27 +1,28 @@
-# Gagnavinnsla með SQLite3
+## 1. Tíðni nafna á íslandi
 
-## Leiðbeiningar
+**Fyrir dæmi 1 þarf að huga að eftirfarandi atriðum til að fá kóðann til að virka**
 
-- **Öll svör verða að vera rökstudd með skýrri röksemdafærslu.** Ekki verður veitt stig fyrir
-  svör án rökstuðnings.
-- **Tryggið skýrleika og skipulag í uppsetningu.** Hlaðið svo upp PDF útgáfu af lausninni ykkar.
-- Þetta er hópverkefni, sem fer fram hér. **Notið PR til að fara yfir lausnir hvers annars.**
-  Mikilvægt er að allir séu virkir þátttakendur í sérhverju undirverkefni.
-    - Tveir teymismeðlimir þurfa að samþykkja breytingar frá öðrum áður en þær eru samþykktar.
-    - Ekki samþykkja án þess að skilja innihald breytinganna, ef um er að ræða kóða þarf að tékka
-      kóðann út og prófa keyra kóðann sjálf/ur.
-    - Verið óhrædd að óska eftir frekari útskýringum ef eitthvað er óskýrt.
-- **Óskýr uppsetning hefur áhrif á stigagjöf verkefnisins.**
-- Gangi ykkur vel!
+1. Fá SQLite inn í kerfið (ef það er nú þegar ekki til staðar).
 
-> Munið að uppfæra README skrána til að endurspegla innihald verkefnisins ykkar. Takið fram öll
-> forrit sem þarf að hlaða niður og uppsetningu þeirra. Útskýrið möppustrúktur og hvernig
-> verkefnið er unnið.
-> Takið fram allar skipanalínur sem þarf að keyra til að keyra lausnina ykkar og notið
-> viðeigandi markdown merkingar til að greina þær frá kóða (þ.e. nota \`\`\`bash skipanalína
-> \`\`\` eða \`\`\`sql SELECT * FROM tbl;\`\`\`.).
+Fyrir macOS/linux:
 
-## 1. Tíðni nafna á Íslandi
+brew install sqlite
+
+Fyrir window notanda:
+
+Þá er hlaðið inn SQLite frá síðunni:
+https://www.sqlite.org/download.html
+
+2. Búa til eða nota SQLite gagngagrunn skrá
+
+Notandinn þarf SQLite gagngagrunn skrá til að keyra fyrirspurnina. Hér heitir gagnaskráin
+names_freq.db og taflan names er búin til innan hennar.
+
+3. Verður að hafa tvær skrár sem innihalda nöfnin sem gögnin eru sótt í. Önnur heitir
+first_names_freq.csv hin heitir middle_names_freq.csv.
+
+4. Með kóðanum úr dæmi eitt er farið inn í terminalið og keyrt skipunana
+ ```sqlite3 data/names_freq.db < names.sql ```
 
 Verkefnið felur í sér að sameina tíðnigögn úr tveimur CSV skrám,
 
@@ -49,7 +50,21 @@ Nemendur munu búa til eina töflu í gagnagrunninum til að geyma og vinna úr 
 3. Skilið skipanaskrá `names.sql` sem a) býr til töfluna, b) les gögnin inn í töfluna og c) svarar
    spurningunum í lið 2.
 
+
+
 ## 2. Saga Ísfólksins
+
+Til þess að keyra dæmi 2 þarf sqlite að vera hlaðið í tölvuna.
+  - Fyrir macOS/linux: brew install sqlite
+  - Fyrir window notanda: hlaðið inn SQLite frá síðunni: https://www.sqlite.org/download.html
+
+Til þess að keyra dæmið þarf að byrja á því að keyra skipunina `sqlite3 data/isfolkid.db` í terminal
+Þá er hægt að:
+- sjá töflur sem að isfolkid inniheldur með því að keyra: `.tables` í terminal
+- skoða innihald hverrar toflu með því að keyra `SELECT * FROM tafla(t.d. books)` í terminal
+
+Skráin `isfolkid.sql` inniheldur skipanir fyrir svörin við hverri spurningu, til þess að sjá svörin þarf að keyra `.read isfolkid.sql` í terminal
+
 
 Verkefnið felur í sér að lesa inn SQLite gagnagrunninn [isfolkid.db](data/isfolkid.db) sem
 inniheldur ýmis gögn um bókabálkinn _Söga Ísfólksins_ eftir norska rithöfundinn Margit Sandemo,
@@ -68,6 +83,21 @@ sem tröllreið íslenskt samfélag á 9. áratug 20. aldar.
     - Hvað er meðallengd hvers þáttar af _Ískisum_?
 
 ## 3. Gagnagrunnur fyrir tímataka.net
+
+Til að geta keyrt timataka_1.py þarf að fara í terminal og keyra skipunina:
+`python timataka_1.py --file agust_2024.txt`
+
+Svo til að geta keryt sql skjalið þarf að downloada sqlite3 pakkanum, það er gert með skipuninni:
+`pip install sqlite3`
+
+Til að opna sqlite3 er keyrt skipunina:
+`sqlite3 timataka.db`
+
+Til að geta séð töflurnar í sql skránni er keyrt:
+`.tables`
+
+Svo til að geta séð hvað er inn í töflunum er keyrt:
+`SELECT * FROM hlaup` og `SELECT * FROM timataka`
 
 Nú skal vinna áfram með tímatöku-liðinn sem var kynntur í
 [síðasta hópverkefni](https://github.com/Upplysingaverkfraedi/regex/?tab=readme-ov-file#4-gagna%C3%BArvinnsla).
@@ -115,7 +145,6 @@ Skilið skipanaskrá `timataka.sql` sem býr til gagnagrunninn, les gögnin inn 
 > [kvenna](https://timataka.net/flensborgarhlaup2024/urslit/?race=2&cat=f) sér. Grunnurinn skal
 > passa að það verða ekki leyfðar tvítekningar. Passið samt að þið missið ekki upplýsingar
 > einsog kyn og aldur.
-
 ### RegEx útvíkkun
 
 1. Útvíkkið Python kóðann ykkar `code/timataka.py` þannig að hann getur tekið lesið og unnið
