@@ -32,7 +32,6 @@ Við þurfum að byrja á því að sameina gögnin okkar í eitt gagnasafn.
     3. `.read names.sql`
 
 
-
 ## Möppustrúktúr: 
 ```bash
 /sqlite-lannister
