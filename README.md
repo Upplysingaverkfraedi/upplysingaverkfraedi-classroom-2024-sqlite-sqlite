@@ -46,9 +46,16 @@ Við þurfum að byrja á því að sameina gögnin okkar í eitt gagnasafn.
 └── README.md
 ```
 
-## 2. Saga Ísfólksins
+# 2. Saga Ísfólksins
 
-#### Möppustrúktur
+## Lýsing verkefnis: 
+Verkefnið felur í sér að búa til skrár sem lýsa uppbyggingu gagnagrunns án gagna í skánni `create_isfolkid.sql`
+og svara spurningum um persónur, tíðni og aðra mikilvæga þætti úr gagnagrunninum sem má finna í skránni `isfolkid.sql`. 
+Nánari útskýring um `isfolkid.sql` má finna í md skránni ` utskyring_lidur2.md`.
+
+
+
+## Möppustrúktur
 ```
 data/
 ├─ isfolkid.db
@@ -57,7 +64,7 @@ isfolkid.sql
 README.md
 ```
 
-#### Allar skipanalínur sem þarf að keyra til að keyra lausnina ykkar
+## Allar skipanalínur sem þarf að keyra til að keyra lausnina ykkar
 Skrifa í terminal...
 ```
 sqlite3 data/isfolkid.db
