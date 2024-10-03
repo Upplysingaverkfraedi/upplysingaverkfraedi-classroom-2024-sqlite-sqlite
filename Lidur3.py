@@ -1,33 +1,37 @@
-from bs4 import BeautifulSoup
-import requests
+import re
 import sqlite3
-import argparse
+import requests
+from bs4 import BeautifulSoup
 from datetime import datetime
-
-def parse_arguments():
-    parser = argparse.ArgumentParser(description='Vinna með úrslit af tímataka.net.')
-    parser.add_argument('--url', help='Slóð að vefsíðu með úrslitum.')
-    parser.add_argument('--output', required=True, help='Slóð að SQLite gagnagrunni.')
-    parser.add_argument('--debug', action='store_true', help='Vistar html í skrá til að skoða.')
-    return parser.parse_args()
 
 def fetch_html(url):
     response = requests.get(url)
     if response.status_code == 200:
-        return response.text
+        html_content = response.text
+        with open(f"debug_{url.split('/')[-1]}.html", 'w', encoding='utf-8') as f:
+            f.write(html_content)  # Save the HTML content for inspection
+        return html_content
     else:
-        print(f"Tókst ekki að sækja gögn af {url}")
+        print(f"Ekki tókst að sækja gögn af {url}")
         return None
 
 def parse_html(html):
     soup = BeautifulSoup(html, 'html.parser')
-    table = soup.find('table')  # Finna fyrstu töflu á síðunni
+
+    # Adjust based on actual HTML structure
+    table = soup.find('table')  # Find the first table on the page
+
+    if not table:
+        print("Engin tafla fannst.")
+        return []
 
     data = []
-    if table:
-        rows = table.find_all('tr')
-        for row in rows:
-            columns = row.find_all('td')
+    
+    # Extract the rows
+    rows = table.find_all('tr')
+    for row in rows:
+        columns = row.find_all('td')
+        if columns:
             column_data = [col.get_text(strip=True) for col in columns]
             if column_data:
                 data.append(column_data)
@@ -36,23 +40,25 @@ def parse_html(html):
 
 def skrifa_nidurstodur(data, db_file, race_name, race_start, race_end, participant_count):
     if not data:
-        print("Engar niðurstöður til að skrifa.")
+        print(f"Engar niðurstöður til að skrifa fyrir {race_name}.")
         return
 
     conn = sqlite3.connect(db_file)
     cursor = conn.cursor()
 
-    # Búa til töflur ef þær eru ekki til
+    # Create the 'hlaup' table if it doesn't exist
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS hlaup (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         upphaf DATETIME NOT NULL,
         endir DATETIME,
         nafn TEXT NOT NULL,
-        fjoldi INTEGER
+        fjoldi INTEGER,
+        UNIQUE(nafn, upphaf)
     )
     ''')
 
+    # Create the 'timataka' table if it doesn't exist
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS timataka (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -66,16 +72,15 @@ def skrifa_nidurstodur(data, db_file, race_name, race_start, race_end, participa
     )
     ''')
 
-    # Setja inn hlaupið (upplýsingar dregnar úr HTML gögnum)
+    # Insert race details
     cursor.execute('''
-    INSERT INTO hlaup (upphaf, endir, nafn, fjoldi)
+    INSERT OR IGNORE INTO hlaup (upphaf, endir, nafn, fjoldi)
     VALUES (?, ?, ?, ?)
     ''', (race_start, race_end, race_name, participant_count))
 
-    # Nýlega sett hlaup_id fyrir hlaupið
     hlaup_id = cursor.lastrowid
 
-    # Setja inn niðurstöður þátttakenda í hlaupið
+    # Insert participants
     for row in data:
         if len(row) >= 3:
             name = row[0]
@@ -84,60 +89,61 @@ def skrifa_nidurstodur(data, db_file, race_name, race_start, race_end, participa
             age = int(row[3]) if len(row) > 3 and row[3].isdigit() else None
 
             cursor.execute('''
-            INSERT INTO timataka (hlaup_id, nafn, timi, kyn, aldur)
+            INSERT OR IGNORE INTO timataka (hlaup_id, nafn, timi, kyn, aldur)
             VALUES (?, ?, ?, ?, ?)
-            ON CONFLICT(hlaup_id, nafn, timi) DO NOTHING
             ''', (hlaup_id, name, time, gender, age))
 
     conn.commit()
     conn.close()
-    print(f"Niðurstöður fyrir {race_name} hafa verið vistaðar í {db_file}.")
-
-def verify_participant_counts(db_file):
-    conn = sqlite3.connect(db_file)
-    cursor = conn.cursor()
-
-    cursor.execute('''
-    SELECT h.nafn, h.fjoldi AS skradir_keppendur, COUNT(t.id) AS raunverulegir_keppendur
-    FROM hlaup h
-    LEFT JOIN timataka t ON h.id = t.hlaup_id
-    GROUP BY h.id;
-    ''')
-
-    results = cursor.fetchall()
-    for result in results:
-        print(f"{result[0]}: Skráðir keppendur: {result[1]}, Raunverulegir keppendur: {result[2]}")
-
-    conn.close()
+    print(f"Niðurstöður fyrir {race_name} vistaðar í {db_file}.")
 
 def main():
-    args = parse_arguments()
+    db_file = "results.db"  # SQLite database file
 
-    if not ('timataka.net' in args.url and 'urslit' in args.url):
-        print("Slóðin er ekki frá timataka.net eða ekki með úrslitum.")
-        return
+    # List of URLs for all August 2022 races
+    urls = [
+        "https://timataka.net/ljosanaeturhlaup2022",
+        "https://timataka.net/criterium2022_islandsmot",
+        "https://timataka.net/tindahlaup2022/",
+        "https://timataka.net/sprettthraut2022",
+        "https://timataka.net/landsnet2022/",
+        "https://timataka.net/fossvogshlaupid2022/",
+        "https://timataka.net/fellahringurinn2022/",
+        "https://timataka.net/hundahlaupid2022/",
+        "https://timataka.net/skalafell2022",
+        "https://timataka.net/reykjavikurmarathon2022",
+        "https://timataka.net/grefillinn2022",
+        "https://timataka.net/criterium2022_2",
+        "https://timataka.net/ormurinn2022/",
+        "https://timataka.net/trekyllisheidin2022/",
+        "https://timataka.net/5vh-hlaup-2022",
+        "https://timataka.net/enduroiso2022",
+        "https://timataka.net/stelpuhringur2022/",
+        "https://timataka.net/criterium2022_1",
+        "https://timataka.net/morgunbladshringurinn2022",
+        "https://timataka.net/austurultra2022",
+        "https://timataka.net/bruarhlaupid2022/",
+        "https://timataka.net/jokulsarhlaup2022/",
+        "https://timataka.net/posthlaupid2022",
+        "https://timataka.net/castelli-classic-rr-2022",
+        "https://timataka.net/vatnsmyrarhlaupid2022",
+        "https://timataka.net/tt2022_4"
+    ]
 
-    html = fetch_html(args.url)
-    if not html:
-        raise Exception("Ekki tókst að sækja HTML gögn, athugið URL.")
+    for url in urls:
+        html = fetch_html(url)
+        if not html:
+            print(f"Ekki tókst að sækja gögn af {url}")
+            continue
 
-    if args.debug:
-        html_file = args.output.replace('.sqlite', '.html')
-        with open(html_file, 'w', encoding='utf-8') as file:
-            file.write(html)
-        print(f"HTML fyrir {args.url} vistað í {html_file}")
+        # Example: Replace with dynamic fetching if needed
+        race_name = url.split('/')[-1]  # Use URL fragment as the race name for now
+        race_start = '2022-08-01 10:00:00'  # Replace with actual start time
+        race_end = '2022-08-01 12:00:00'  # Replace with actual end time
+        participant_count = 150  # Replace with actual participant count
 
-    # Dæmi um að ná í mörg hlaup frá ágúst 2022 (þar sem upplýsingarnar eru fengnar af síðunni)
-    # Upplýsingarnar eins og nafn hlaupsins, upphafs- og loktími og fjöldi þátttakenda ættu að vera dregnar
-    # af tímataka.net síðunni, t.d. með aðra töflu eða div.
-    race_name = "Ljósanæturhlaup Lífsstíls"
-    race_start = '2022-08-31 18:00:00'
-    race_end = '2022-08-31 20:00:00'
-    participant_count = 200  # Þessi tala verður að koma úr raunverulegum gögnum
-
-    results = parse_html(html)
-    skrifa_nidurstodur(results, args.output, race_name, race_start, race_end, participant_count)
-    verify_participant_counts(args.output)
+        data = parse_html(html)
+        skrifa_nidurstodur(data, db_file, race_name, race_start, race_end, participant_count)
 
 if __name__ == "__main__":
     main()
