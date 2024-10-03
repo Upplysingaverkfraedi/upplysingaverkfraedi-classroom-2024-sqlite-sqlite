@@ -27,7 +27,7 @@ Við þurfum að byrja á því að sameina gögnin okkar í eitt gagnasafn.
 ## Keyrsla á kóðanum: 
 1. Opna Terminal 
 2. Setja eftirfarandi í skipanalínu (ath. 1. lína breytist eftir tölvum)
-    1. `cd /Users/elisabet/Documents/GitHub/sqlite-lannister`
+    1. `realpath ` til að sjá hvar skráin er. Hjá mér það `cd /Users/elisabet/Documents/GitHub/sqlite-lannister`
     2. `sqlite3 names_freq.db`
     3. `.read names.sql`
 
