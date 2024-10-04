@@ -1,164 +1,105 @@
-import re
-import sqlite3
 import requests
+import re
+import pandas as pd
+from datetime import datetime
 
-def fetch_html(url):
+# Constants
+TIMATAKA_URL = 'https://timataka.net/'
+RACE_DATES = "Aug 2022"
+
+# Regex
+GROUP_RACES_BY_DATE = r'<h3>(.*?)<\/h3>((?:\s*<li>(?:.|\n)*?<\/li>\s*)*)'
+GET_RACE_LINK_AND_NAME = r'<li><a href="(.*?)">([\s\S]*?)<\/a>\s*\((.*?)\)<\/li>'
+GET_RACE_NUMBERS = r'<a href="urslit\/\?race=([0-9]*)&.*">.*<\/a><br\/>'
+GET_RACE_NAME = r'<h2>\s*([\s\S]*?)<\/h2>'
+GET_RACE_START_TIME = r'<small class="stats-label">Start time<\/small>\s*<h4>(.*?)<\/h4>'
+GET_RACE_END_TIME = r'<small class="stats-label">Est\. finish time<\/small>\s*<h4>(.*?)<\/h4>'
+GET_RACE_NUMBER_OF_COMPETITORS = r'<small class="stats-label">Started \/ Finished<\/small>\s*<h4>(.*?) \/ .*<\/h4>'
+GET_YEAR_FROM_MONTH_YEAR = r'((?:.*){3}) ([0-9]{4})'
+GET_DAY_FROM_DATE = r'([0-9]*).*'
+
+def get_dates_races():
+    '''This is a function that gets all of the dates on the website'''
+
+    response = requests.get(TIMATAKA_URL)
+    text = response.text
+
+    race_groups = re.findall(GROUP_RACES_BY_DATE, text)
+
+    races = []
+    for month_year, group_html in race_groups:
+        race_link_name = re.findall(GET_RACE_LINK_AND_NAME, group_html)
+
+        for link, name, date in race_link_name:
+            month, year = re.findall(GET_YEAR_FROM_MONTH_YEAR, month_year)[0]
+            day = re.findall(GET_DAY_FROM_DATE, date)[0]
+            date_str = f"{day} {month} {year}"
+            date_object = datetime.strptime(date_str, "%d %b %Y")
+
+            races.append((date_object, name, link))
+
+    df = pd.DataFrame(races, columns=['Date', 'Name', 'Link'])
+    return df
+
+def filter_races(df):
+    '''Filter out all the races that are not neccessary'''
+
+    df = df[df['Date'] == RACE_DATES]
+    return df
+
+def get_race_numbers(url):
+    '''Gets unique race numbers given a url'''
+    
     response = requests.get(url)
-    if response.status_code == 200:
-        html_content = response.text
-        sanitized_filename = re.sub(r'[\/:*?"<>|&=]', '_', url.split('/')[-1])
-        with open(f"debug_{sanitized_filename}.html", 'w', encoding='utf-8') as f:
-            f.write(html_content)  # Save HTML content for inspection
-        return html_content
-    else:
-        print(f"Ekki tókst að sækja gögn af {url}")
-        return None
+    text = response.text
 
-def parse_links(html, base_url):
-    links = re.findall(r'href="(urslit/\?race=\d+&cat=[^"]+)"', html)
-    full_links = [base_url + link for link in links]
-    return full_links
+    race_numbers = re.findall(GET_RACE_NUMBERS, text)
+    unique_race_numbers_set = set(race_numbers)
+    unique_race_numbers = list(unique_race_numbers_set)
 
-def parse_results(html):
-    table_match = re.search(r'<table.*?>.*?</table>', html, re.DOTALL)
-    
-    if table_match:
-        table_html = table_match.group(0)
-        rows = re.findall(r'<tr.*?>(.*?)</tr>', table_html, re.DOTALL)
+    return unique_race_numbers
 
-        data = []
-        for row in rows:
-            columns = re.findall(r'<td.*?>(.*?)</td>', row, re.DOTALL)
-            if columns:
-                column_data = [re.sub(r'<.*?>', '', col).strip() for col in columns]
-                data.append(column_data)
+def get_sub_race_link(url, race_number):
+    return url + "/urslit?race=" + race_number
+
+def get_race_info(url):
+    '''This gets the basic race info given a url'''
+
+    response = requests.get(url)
+    text = response.text
+
+    race_name = re.findall(GET_RACE_NAME, text)[0]
+    start_time = re.findall(GET_RACE_START_TIME, text)[0]
+    end_time = re.findall(GET_RACE_END_TIME, text)[0]
+    number_of_competitors = re.findall(GET_RACE_NUMBER_OF_COMPETITORS, text)[0]
+
+    return race_name, start_time, end_time, number_of_competitors
+
+def get_races_from_events(df):
+    all_races = []
+    for _, row in df.iterrows():
+        link = row['Link']
+        race_numbers = get_race_numbers(link)
         
-        return data
-    else:
-        print("Engin tafla fannst í úrslitunum.")
-    return []
+        for race_number in race_numbers:
+            sub_race_link = get_sub_race_link(link, race_number)
+            sub_race_info = get_race_info(sub_race_link)
+            
+            all_races.append((row['Name'], row['Date']) + sub_race_info)
 
-def parse_participant_count(html, race_category):
-    # Sérstök meðhöndlun fyrir 'overall'
-    if race_category == 'overall':
-        match = re.search(r'(\d+) participants', html)
-        if match:
-            print(f"Heildarfjöldi keppenda fundinn: {match.group(1)}")
-            return int(match.group(1))
-    
-    # Leitar að línunni með "Started / Finished" og tekur fjöldann sem hóf hlaupið
-    match = re.search(r'Started / Finished</small>\s*<h4>(\d+)\s*/\s*\d+</h4>', html)
-    
-    if match:
-        print(f"Found 'Started / Finished': {match.group(1)} keppendur byrjuðu hlaupið")
-        return int(match.group(1))  # Skilar fjölda keppenda sem hófu hlaupið
-    else:
-        # Bæta við sérstakri meðhöndlun fyrir "150" fjöldann
-        match_overall = re.search(r'<h4>(150)</h4>', html)
-        if match_overall:
-            print(f"Found 'Overall Participants' set to 150: {match_overall.group(1)} keppendur")
-            return int(match_overall.group(1))
-
-        print("Ekki tókst að finna fjölda keppenda. Nota 0 sem sjálfgefið gildi.")
-    return 0  # Ef engin tala finnst, skilar 0
-
-def skrifa_nidurstodur(data, db_file, race_name, race_start, race_end, participant_count):
-    if not data:
-        print(f"Engar niðurstöður til að skrifa fyrir {race_name}.")
-        return
-
-    conn = sqlite3.connect(db_file)
-    cursor = conn.cursor()
-
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS hlaup (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        upphaf DATETIME NOT NULL,
-        endir DATETIME,
-        nafn TEXT NOT NULL,
-        fjoldi INTEGER,
-        UNIQUE(nafn, upphaf)
-    )
-    ''')
-
-    cursor.execute('''
-    CREATE TABLE IF NOT EXISTS timataka (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        hlaup_id INTEGER,
-        nafn TEXT NOT NULL,
-        timi TEXT NOT NULL,
-        kyn TEXT,
-        aldur INTEGER,
-        UNIQUE(hlaup_id, nafn, timi),
-        FOREIGN KEY (hlaup_id) REFERENCES hlaup(id)
-    )
-    ''')
-
-    cursor.execute('''
-    SELECT id FROM hlaup WHERE nafn = ? AND upphaf = ?
-    ''', (race_name, race_start))
-
-    hlaup_id = cursor.fetchone()
-    if hlaup_id:
-        hlaup_id = hlaup_id[0]
-    else:
-        cursor.execute('''
-        INSERT INTO hlaup (upphaf, endir, nafn, fjoldi)
-        VALUES (?, ?, ?, ?)
-        ''', (race_start, race_end, race_name, participant_count))
-        hlaup_id = cursor.lastrowid
-
-    for row in data:
-        if len(row) >= 3:
-            name = row[0]
-            time = row[1]
-            gender = row[2] if len(row) > 2 else None
-            age = int(row[3]) if len(row) > 3 and row[3].isdigit() else None
-
-            cursor.execute('''
-            SELECT id FROM timataka WHERE hlaup_id = ? AND nafn = ? AND timi = ?
-            ''', (hlaup_id, name, time))
-
-            if not cursor.fetchone():
-                cursor.execute('''
-                INSERT INTO timataka (hlaup_id, nafn, timi, kyn, aldur)
-                VALUES (?, ?, ?, ?, ?)
-                ''', (hlaup_id, name, time, gender, age))
-
-    conn.commit()
-    conn.close()
-    print(f"Niðurstöður fyrir {race_name} vistaðar í {db_file}.")
+    df_all_races = pd.DataFrame(all_races, columns=['vidburdur', 'nafn', 'upphaf', 'endir', 'fjoldi'])
+    return df_all_races
 
 def main():
-    db_file = "results.db"
+    '''This is the main function'''
+    
+    df = get_dates_races()
+    df = filter_races(df)
+    df = get_races_from_events(df)
 
-    base_url = "https://timataka.net/criterium2022_islandsmot/"
-    start_page = base_url
+    print(df)
 
-    html = fetch_html(start_page)
-    if not html:
-        print("Ekki tókst að sækja upphafssíðuna.")
-        return
+    df.to_csv('hlaup.csv', index=None)
 
-    result_links = parse_links(html, base_url)
-
-    for link in result_links:
-        print(f"Sæki gögn af {link}")
-        result_html = fetch_html(link)
-        if not result_html:
-            print(f"Ekki tókst að sækja gögn af {link}")
-            continue
-
-        data = parse_results(result_html)
-
-        race_name = link.split('cat=')[-1]
-        race_start = '2022-08-28 10:00:00'
-        race_end = '2022-08-28 12:00:00'
-
-        participant_count = parse_participant_count(result_html, race_name)
-        print(f"Fjöldi keppenda fyrir {race_name}: {participant_count}")
-
-        skrifa_nidurstodur(data, db_file, race_name, race_start, race_end, participant_count)
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

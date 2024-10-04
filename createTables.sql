@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS hlaup (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    vidburdur TEXT NOT NULL,
+    nafn TEXT NOT NULL,
+    upphaf DATETIME NOT NULL,
+    endir DATETIME NOT NULL,
+    fjoldi INTEGER NOT NULL
+);
