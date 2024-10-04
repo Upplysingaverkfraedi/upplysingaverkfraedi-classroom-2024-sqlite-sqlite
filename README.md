@@ -1,3 +1,82 @@
+# 1. Tíðni nafna á Íslandi 
+
+## Lýsing verkefnis: 
+Verkefnið felur í sér að sameina tíðnigögn úr tveimur CSV skrám, `first_names_freq.csv` og `middle_names_freq.csv`, í SQLite gagnagrunninn `names_freq.db`. Næst eftir að gögnin hafa verið sameinuð í töfluna (`names.sql`), er notuð SQL fyrirspurn til að greina vinsælasta nafn af hópmeðlinum, tíðni nafna hópmeðlima og segja til um hvenær nöfnin komu fyrst fram. 
+
+
+## Nauðsynleg forrit og uppsetning
+Til að keyra verkefnið þarf eftirfarandi forrit:
+
+- **SQLite**:
+  - SQL er á flestum macOS tölvum og þarf því ekki að setja það upp.
+  - Til að athuga hvort SQL er á tölvunni skrifið inn eftirfarandi í Terminal:
+    ```sqlite3 --version``` 
+  - Ef það þarf að setja upp SQLite, gerið það áður en hafist er handa við verkefnið. 
+  - Einnig þarf að hlaða niður SQLite viðbótinni (finnið hana í 'extensions') í VS Code til að keyra SQL fyrirspurnir.
+
+## Búa til gagnasafnið `names_freq.db`: 
+Við þurfum að byrja á því að sameina gögnin okkar í eitt gagnasafn. 
+1. Opna Terminal 
+2. Setja path fyrir hvert þú vilt fá skránna
+    1. Hjá mér er það: `cd/Documents/GitHub/sqlite-lannister`
+3. Búa til gagnasafnið og töfluna: `sqlite3 names_freq.db < names.sql`
+4. Athuga hvort það sé komið: `sqlite3 names_freq.db`
+5. Ef þú vilt sjá töfluna: `.tables`
+
+
+## Keyrsla á kóðanum: 
+1. Opna Terminal 
+2. Setja eftirfarandi í skipanalínu (ath. 1. lína breytist eftir tölvum)
+    1. `realpath ` til að sjá hvar skráin er. Hjá mér það `cd /Users/elisabet/Documents/GitHub/sqlite-lannister`
+    2. `sqlite3 names_freq.db`
+    3. `.read names.sql`
+
+
+## Möppustrúktúr: 
+```bash
+/sqlite-lannister
+├── data/
+     input/ 
+         ├── first_names_freq.csv
+         └── middle_names_freq.csv
+      output/
+         ├── names_freq.db
+├── code/
+     ├── names.sql
+└── README.md
+```
+
+# 2. Saga Ísfólksins
+
+## Lýsing verkefnis: 
+Verkefnið felur í sér að búa til skrár sem lýsa uppbyggingu gagnagrunns án gagna í skánni `create_isfolkid.sql`
+og svara spurningum um persónur, tíðni og aðra mikilvæga þætti úr gagnagrunninum sem má finna í skránni `isfolkid.sql`. 
+Nánari útskýring um `isfolkid.sql` má finna í md skránni ` utskyring_lidur2.md`.
+
+
+
+## Möppustrúktur
+```
+data/
+├─ isfolkid.db
+create_isfolkid.sql
+isfolkid.sql
+README.md
+```
+
+## Allar skipanalínur sem þarf að keyra til að keyra lausnina ykkar
+Skrifa í terminal...
+```
+sqlite3 data/isfolkid.db
+.read isfolkid.sql
+```
+og 
+
+```
+sqlite3 data/create_isfolkid.db
+.read create_isfolkid.sql
+```
+
 # 3. Gagnagrunnur fyrir tímataka.net
 
 ### Lýsing verkefnis
