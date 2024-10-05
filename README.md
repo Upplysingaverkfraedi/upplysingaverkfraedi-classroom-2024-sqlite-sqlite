@@ -1,10 +1,4 @@
-# 1. Tíðni nafna á Íslandi 
-
-## Lýsing verkefnis: 
-Verkefnið felur í sér að sameina tíðnigögn úr tveimur CSV skrám, `first_names_freq.csv` og `middle_names_freq.csv`, í SQLite gagnagrunninn `names_freq.db`. Næst eftir að gögnin hafa verið sameinuð í töfluna (`names.sql`), er notuð SQL fyrirspurn til að greina vinsælasta nafn af hópmeðlinum, tíðni nafna hópmeðlima og segja til um hvenær nöfnin komu fyrst fram. 
-
-
-## Nauðsynleg forrit og uppsetning
+# Nauðsynleg forrit og uppsetning
 Til að keyra verkefnið þarf eftirfarandi forrit:
 
 - **SQLite**:
@@ -13,6 +7,41 @@ Til að keyra verkefnið þarf eftirfarandi forrit:
     ```sqlite3 --version``` 
   - Ef það þarf að setja upp SQLite, gerið það áður en hafist er handa við verkefnið. 
   - Einnig þarf að hlaða niður SQLite viðbótinni (finnið hana í 'extensions') í VS Code til að keyra SQL fyrirspurnir.
+
+# Möppustrúktúr: 
+## Liður 1: 
+```bash
+/sqlite-lannister
+├── data/
+     input/ 
+         ├── first_names_freq.csv
+         └── middle_names_freq.csv
+      output/
+         ├── names_freq.db
+├── code/
+     ├── names.sql
+└── README.md
+```
+## Liður 2: 
+```
+data/
+├─ isfolkid.db
+create_isfolkid.sql
+isfolkid.sql
+README.md
+```
+## Liður 3: 
+```
+insert Data.py
+createTables.sql
+lidur3.py
+Liður3.sql
+```
+
+# 1. Tíðni nafna á Íslandi 
+
+## Lýsing verkefnis: 
+Verkefnið felur í sér að sameina tíðnigögn úr tveimur CSV skrám, `first_names_freq.csv` og `middle_names_freq.csv`, í SQLite gagnagrunninn `names_freq.db`. Næst eftir að gögnin hafa verið sameinuð í töfluna (`names.sql`), er notuð SQL fyrirspurn til að greina vinsælasta nafn af hópmeðlinum, tíðni nafna hópmeðlima og segja til um hvenær nöfnin komu fyrst fram. 
 
 ## Búa til gagnasafnið `names_freq.db`: 
 Við þurfum að byrja á því að sameina gögnin okkar í eitt gagnasafn. 
@@ -32,19 +61,8 @@ Við þurfum að byrja á því að sameina gögnin okkar í eitt gagnasafn.
     3. `.read names.sql`
 
 
-## Möppustrúktúr: 
-```bash
-/sqlite-lannister
-├── data/
-     input/ 
-         ├── first_names_freq.csv
-         └── middle_names_freq.csv
-      output/
-         ├── names_freq.db
-├── code/
-     ├── names.sql
-└── README.md
-```
+
+
 
 # 2. Saga Ísfólksins
 
@@ -52,17 +70,6 @@ Við þurfum að byrja á því að sameina gögnin okkar í eitt gagnasafn.
 Verkefnið felur í sér að búa til skrár sem lýsa uppbyggingu gagnagrunns án gagna í skánni `create_isfolkid.sql`
 og svara spurningum um persónur, tíðni og aðra mikilvæga þætti úr gagnagrunninum sem má finna í skránni `isfolkid.sql`. 
 Nánari útskýring um `isfolkid.sql` má finna í md skránni ` utskyring_lidur2.md`.
-
-
-
-## Möppustrúktur
-```
-data/
-├─ isfolkid.db
-create_isfolkid.sql
-isfolkid.sql
-README.md
-```
 
 ## Allar skipanalínur sem þarf að keyra til að keyra lausnina ykkar
 Skrifa í terminal...
@@ -86,12 +93,6 @@ Sannreyna átti með samsöfnun og hópun hvort fjöldi keppanda í `hlaup` töf
 fjölda lína í `timataka` töflunni. 
 Þar sem við erum hópur Lannister áttum við að skoða öll hlaup ágúst 2022 sem eru skráð inná timataka.net 
  
-### Möppustrúktur 
-insert Data.py
-createTables.sql
-lidur3.py
-Liður3.sql
-
 ### SQLite3 gagnagrunnur
 
 Gagnagrunnurinn hafði tvær töflur; `hlaup` sem má finna í skránni createTables.sql og `timataka` (sem er enn í vinnslu) sem tók saman upplýsingar um: 
